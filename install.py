@@ -1,32 +1,30 @@
 import launch
 import os
 
-req_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "requirements.txt")
-
-with open(req_file) as file:
-    for lib in file:
-        lib = lib.strip()
-        if not launch.is_installed(lib):
-            launch.run_pip(f"install {lib}", f"SendURL/ requirement: {lib}")
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+REQ_FILE = os.path.join(CURRENT_DIR, "requirements.txt")
+CONFIG_FILE = os.path.join(CURRENT_DIR, "config.ini")
+WEBUI_FILE = os.path.abspath(os.path.join(CURRENT_DIR, '..', '..', 'webui.py'))
 
 
-config_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config.ini")
+def install_missing_libraries():
+    with open(REQ_FILE) as file:
+        for lib in file:
+            lib = lib.strip()
+            if not launch.is_installed(lib):
+                launch.run_pip(f"install {lib}", f"SendURL/ requirement: {lib}")
 
 
 def check_config_exist():
-    if not os.path.isfile(config_file):
+    if not os.path.isfile(CONFIG_FILE):
         lines = '[telegram]\nbot_token = \nchat_id = \n'
-        with open(config_file, 'w') as f:
+        with open(CONFIG_FILE, 'w') as f:
             f.writelines(lines)
-        print(f'File config.ini empty...\nPlease insert in to file token and chat_id.\n{ config_file }\n')
+        print(f'File config.ini empty...\nPlease insert token and chat_id into the file: {CONFIG_FILE}\n')
 
 
 def inline_send_public_url():
-    # Get the absolute path to the webui.py file
-    file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'webui.py'))
-
-    # Read webui.py file
-    with open(file_path, 'r') as f:
+    with open(WEBUI_FILE, 'r') as f:
         lines = f.readlines()
 
     # Check if the function exists in the file
@@ -34,12 +32,10 @@ def inline_send_public_url():
     for line in lines:
         if 'send_public_url(share_url)' in line:
             text_exists = True
-            break
-            exit()
 
-    # If the function already exists, write the script
+    # If the function already exists, exit
     if not text_exists:
-        print('Function SendURL already exists.\nWebUI SendURL Updated...\n')
+        print('Function send_public_url already exists.\nWebUI send_public_url is already up to date.\n')
 
         # Insert the code to send the public URL
         lines.insert(7, 'from extensions.SendURL.send_msg import send_public_url\n')
@@ -51,9 +47,11 @@ def inline_send_public_url():
         lines.insert(273, '\n')
 
     # Write updated content to webui.py file
-    with open(file_path, 'w') as f:
+    with open(WEBUI_FILE, 'w') as f:
         f.writelines(lines)
 
 
-check_config_exist()
-inline_send_public_url()
+if __name__ == '__main__':
+    install_missing_libraries()
+    check_config_exist()
+    inline_send_public_url()
