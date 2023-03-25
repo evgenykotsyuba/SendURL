@@ -42,13 +42,13 @@ def inline_send_public_url():
         print('Function SendURL already exists.\nWebUI SendURL Updated...\n')
 
         # Insert the code to send the public URL
-        lines.insert(6, 'from extensions.SendURL.send_msg import send_public_url\n')
-        lines.insert(265, '        # Send public URL to Telegram\n')
-        lines.insert(266, '        try:\n')
-        lines.insert(267, '            send_public_url(share_url)\n')
-        lines.insert(268, '        except Exception as e:\n')
-        lines.insert(269, '            print(f"Error plugin SendURL: {e}")\n')
-        lines.insert(270, '\n')
+        lines.insert(7, 'from extensions.SendURL.send_msg import send_public_url\n')
+        lines.insert(268, '        # Send public URL to Telegram\n')
+        lines.insert(269, '        try:\n')
+        lines.insert(270, '            send_public_url(share_url)\n')
+        lines.insert(271, '        except Exception as e:\n')
+        lines.insert(272, '            print(f"Error plugin SendURL: {e}")\n')
+        lines.insert(273, '\n')
 
     # Write updated content to webui.py file
     with open(file_path, 'w') as f:
