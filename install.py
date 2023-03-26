@@ -24,31 +24,46 @@ def check_config_exist():
 
 
 def inline_send_public_url():
+    # Read file contents into memory
     with open(WEBUI_FILE, 'r') as f:
         lines = f.readlines()
 
-    # Check if the function exists in the file
+    # Find index of specific block of text
     text_exists = False
-    for line in lines:
+    for i, line in enumerate(lines):
         if 'send_public_url(share_url)' in line:
             text_exists = True
+            # print(f'line: {i} send_public_url exists')
+            break
 
-    # If the function already exists, exit
     if not text_exists:
-        print('Function send_public_url already exists.\nWebUI send_public_url is already up to date.\n')
+        # Add missing text to file contents
+        insert_index = None
+        for i, line in enumerate(lines):
+            if 'app, local_url, share_url' in line:
+                preceding_whitespace = line[:len(line) - len(line.lstrip())]
+                insert_index = i + 11
+                new_lines = [
+                    f"{preceding_whitespace}# Send public URL to Telegram\n",
+                    f"{preceding_whitespace}try:\n",
+                    f"{preceding_whitespace}    from extensions.SendURL.send_msg import send_public_url\n",
+                    f"{preceding_whitespace}    send_public_url(share_url)\n",
+                    f"{preceding_whitespace}except Exception as e:\n",
+                    f"{preceding_whitespace}    print(f'Error plugin SendURL: {{e}}')\n",
+                    "\n"
+                ]
+                lines = lines[:insert_index] + new_lines + lines[insert_index:]
+                break
 
-        # Insert the code to send the public URL
-        lines.insert(7, 'from extensions.SendURL.send_msg import send_public_url\n')
-        lines.insert(268, '        # Send public URL to Telegram\n')
-        lines.insert(269, '        try:\n')
-        lines.insert(270, '            send_public_url(share_url)\n')
-        lines.insert(271, '        except Exception as e:\n')
-        lines.insert(272, '            print(f"Error plugin SendURL: {e}")\n')
-        lines.insert(273, '\n')
+        if insert_index is None:
+            # The expected block of text was not found, so don't modify the file contents
+            print("send_public_url not found in expected location\n")
+        else:
+            # Write modified file contents back to file
+            with open(WEBUI_FILE, 'w') as f:
+                f.writelines(lines)
 
-    # Write updated content to webui.py file
-    with open(WEBUI_FILE, 'w') as f:
-        f.writelines(lines)
+    return "Plugin SendURL ready..."
 
 
 if __name__ == '__main__':
